@@ -7,10 +7,13 @@ const List = require('immutable-list');
 const debug = require('debug')('app-plumbing-security-server');
 
 
+//TODO: need a way to stop a role from propagating access rights to children (? a 'DENY' role?)
+
 const ROLE_DEFAULTS = {
 	resources: List.EMPTY,
 	actions: List.EMPTY,
-	name: ''
+	name: '',
+	uid: uuid()
 };
 
 class Role extends Immutable(ROLE_DEFAULTS) {
@@ -90,6 +93,14 @@ const DOMAIN_DEFAULTS = {
 	roles: List.from([ GUEST_ROLE, ADMIN_ROLE ])
 };
 
+const DOMAIN_ATTR_PROPS = {
+	roles: { 
+		elementType: List,
+		collectionElementType: Role, 
+		collectionElementIdentity: role=>role.uid 
+	}
+}
+
 
 class SecurityDomain extends Immutable(DOMAIN_DEFAULTS) {
 
@@ -111,6 +122,10 @@ class SecurityDomain extends Immutable(DOMAIN_DEFAULTS) {
 			roles: List.from(props.roles).map(role => Role.fromJSON(role)) 
 		}); 
 		return new SecurityDomain(props);
+	}
+
+	static getAttrProps(name) {
+		return DOMAIN_ATTR_PROPS[name];
 	}
 
 	get uid() { return this.name; }

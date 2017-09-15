@@ -1,5 +1,6 @@
 const { Role, SecurityDomain } = require('../src/model.js');
 const { Store } = require('db-plumbing-map');
+const Patch = require('typed-patch');
 const debug = require('debug')('app-plumbing-security-server');
 const expect = require('chai').expect;
 
@@ -18,6 +19,11 @@ const domain = SecurityDomain.fromJSON({
 
 
 describe('SecurityDomain', () => {
+
+    it("can get a role from a domain", () => {
+      let contributor = domain.roles.find(e=>e.name === 'contributor');
+      expect(contributor).to.exist;
+    });
 
     it("splits resource path when converting from JSON", () => {
   		let editor = domain.roles[0];
@@ -45,7 +51,7 @@ describe('SecurityDomain', () => {
     });
 
     it("joins resource path when converting to JSON", () => {
-    	let reverse = domain.roles.map(r => r.toJSON());
+    	let reverse = domain.roles.map(r => r.toJSON()).map(({name,resources,actions})=>({name,resources, actions}));
     	expect(Array.from(reverse)).to.deep.equal(roles);
     });
 
@@ -61,5 +67,26 @@ describe('SecurityDomain', () => {
     		expect(Array.from(roles)).to.have.members(['guest']);
     		roles = domain.getRolesFor('nuts','get');
     		expect(Array.from(roles)).to.be.empty;
+    });
+
+    it("Computes patch for role update", () => {
+      let cix = domain.roles.findIndex(e=>e.name === 'contributor');
+      let actions = domain.roles[cix].actions.push('delete');
+      let contributor_role = domain.roles[cix].setActions(actions);
+      let roles = domain.roles.set(cix, contributor_role);
+      let domain2 = domain.setRoles(roles);
+      let patch = Patch.compare(domain, domain2);
+      debug('patch: %j', patch);
+      let domain3 = patch.patch(domain);
+      debug(domain3);
+      for (let i = 0; i < 5; i++) {
+        let r1 = domain2.roles[i];
+        let r2 = domain3.roles[i];
+        expect(r1).to.exist;
+        expect(r2).to.exist;
+        expect(r1.name).to.equal(r2.name);
+        expect(r1.actions.length).to.equal(r2.actions.length);
+        r1.actions.forEach((action, index) => expect(action).to.equal(r2.actions[index]));
+      }
     });
 });

@@ -8,11 +8,11 @@ const expect= chai.expect;
 chai.use(chaiHttp);
 
 const roles = [
-    { name: "editor", resources: [ 'dev/blog' ], actions: ['PUT', 'post', 'delete', 'GET', 'patch']},
-    { name: "contributor", resources: ['dev/blog'], actions: ['PUT', 'post', 'GET']},
+    { name: "editor", resources: [ 'dev/blog' ], actions: ['PUT', 'POST', 'DELETE', 'GET', 'PATCH']},
+    { name: "contributor", resources: ['dev/blog'], actions: ['PUT', 'POST', 'GET']},
     { name: "guest", resources: ['dev'], actions: ['GET']},
-    { name: "guest", resources: ['dev/blog/*/comment'], actions: ['GET','post']},
-    { name: "wiki", resources: ['dev/wiki','prod/wiki'], actions: ['PUT', 'post', 'del', 'GET']},
+    { name: "guest", resources: ['dev/blog/*/comment'], actions: ['GET','POST']},
+    { name: "wiki", resources: ['dev/wiki','prod/wiki'], actions: ['PUT', 'POST', 'DELETE', 'GET']},
 ]
 
 const domain = SecurityDomain.fromJSON({
@@ -33,7 +33,17 @@ User.Store.update(User.fromJSON(
 	}
 ));
 
-describe('Request filter', () => {
+User.Store.update(User.fromJSON(
+  {
+    name: 'editor_user', 
+    email:'me@my.net', 
+    domainRoles: [
+      [ 'mydomain', [ 'editor', 'wiki' ]]
+    ]
+  }
+));
+
+describe('Request filter - with test blog/wiki domain', () => {
 
 	before(function() {
     	return start();
@@ -70,4 +80,69 @@ describe('Request filter', () => {
               expect(res).to.have.status(403); done(); 
             })
     });
+
+    it('guest user can post comments on blog', (done) => {
+      setUser('guest_user');
+        chai.request(app)
+            .post('/dev/blog/34/comment')
+            .field('test','data')
+            .end((err,res) => { 
+              if (err) debug(err);
+              expect(res).to.have.status(200); done(); 
+            })
+    });
+
+    it('guest user can read dev wiki', (done) => {
+      setUser('guest_user');
+        chai.request(app)
+            .get('/dev/wiki/page')
+            .end((err,res) => { 
+              if (err) debug(err);
+              expect(res).to.have.status(200); done(); 
+            })
+    });
+
+    it('guest user can\'t read prod wiki', (done) => {
+      setUser('guest_user');
+        chai.request(app)
+            .get('/prod/wiki/page')
+            .end((err,res) => { 
+              expect(res).to.have.status(403); done(); 
+            })
+    });
+
+    it('editor user can write to blog', (done) => {
+      setUser('editor_user');
+        chai.request(app)
+            .put('/dev/blog/34')
+            .send({test: 'data'})
+            .end((err,res) => { 
+              if (err) debug(err);
+              expect(res).to.have.status(204); done(); 
+            })
+    });
+
+    it('editor user can write to blog', (done) => {
+      setUser('editor_user');
+        chai.request(app)
+            .put('/dev/blog/34')
+            .send({test: 'data'})
+            .end((err,res) => { 
+              if (err) debug(err);
+              expect(res).to.have.status(204); done(); 
+            })
+    });
+
+
+    it('editor user can write to prod wiki', (done) => {
+      setUser('editor_user');
+        chai.request(app)
+            .put('/prod/wiki/mypage')
+            .send({test: 'data'})
+            .end((err,res) => { 
+              if (err) debug(err);
+              expect(res).to.have.status(204); done(); 
+            })
+    });
+
 });

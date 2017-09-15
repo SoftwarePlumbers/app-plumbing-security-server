@@ -9,10 +9,10 @@
     "express": "^4.15.4",
     "immutable-base": "^0.1.4",
     "immutable-es6-map": "^1.0.2",
-    "immutable-list": "^1.0.3",
+    "immutable-list": "^1.0.4",
     "ink-docstrap": "^1.3.0",
     "iterator-plumbing": "^1.0.1",
-    "jsdoc": "^3.5.4",
+    "jsdoc": "^3.5.5",
     "mocha": "^3.5.3",
     "uuid": "^3.1.0"
   },
@@ -20,7 +20,8 @@
     "chai": "^4.1.2",
     "chai-http": "^3.0.0",
     "mocha": "^3.5.0",
-    "morgan": "^1.8.2"
+    "morgan": "^1.8.2",
+    "typed-patch": "^0.2.11"
   },
   "scripts": {
     "test": "DEBUG=app-plumbing-security-server mocha"

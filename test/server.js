@@ -1,12 +1,12 @@
 const express = require('express');
-const morgan = require('morgan');
+//const morgan = require('morgan');
 const { SecurityDomain, User, Role } = require('../src/model');
 const authenticationFilter = require('../src/filter');
 
 const credentials = { };
 
 const app = express();
-app.use(morgan('combined'));
+//app.use(morgan('combined'));
 
 app.use((req,res,next) => {
     req.user = credentials.user;
@@ -18,12 +18,12 @@ app.use(authenticationFilter);
 
 app.get(   '/dev/blog/:id',  (req,res) => { res.json({ok: true}); });
 app.put(   '/dev/blog/:id',  (req,res) => { res.sendStatus(204); });
-app.get(   'dev/wiki/:id',  (req,res) => { res.json({ok: true}); });
-app.put(   'dev/wiki/:id',  (req,res) => { res.sendStatus(204); });
-app.get(   'prod/wiki/:id',  (req,res) => { res.json({ok: true}); });
-app.put(   'prod/wiki/:id',  (req,res) => { res.sendStatus(204); });
-app.get(   'dev/blog/:id/comment/:comment_id',  (req,res) => { res.json({ok: true}); });
-app.put(   'dev/blog/:id/comment/:comment_id',  (req,res) => { res.sendStatus(204); });
+app.get(   '/dev/wiki/:id',  (req,res) => { res.json({ok: true}); });
+app.put(   '/dev/wiki/:id',  (req,res) => { res.sendStatus(204); });
+app.get(   '/prod/wiki/:id',  (req,res) => { res.json({ok: true}); });
+app.put(   '/prod/wiki/:id',  (req,res) => { res.sendStatus(204); });
+app.get(   '/dev/blog/:id/comment/:comment_id',  (req,res) => { res.json({ok: true}); });
+app.post(  '/dev/blog/:id/comment',  (req,res) => { res.sendStatus(200); });
 
 let server;
 
